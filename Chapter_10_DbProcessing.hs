@@ -58,6 +58,6 @@ avgDb :: [DatabaseItem] -> Double
 avgDb ds = (fromIntegral $ sumDb ds) / (fromIntegral $ countNums ds)
                 where countNums :: [DatabaseItem] -> Integer
                       countNums = foldr countNums' 0
-                                    where countNums' :: DatabaseItem -> Integer -> Integer
-                                          countNums' (DbNumber _) acc = acc + 1
-                                          countNums' _            acc = acc
+                      countNums' :: DatabaseItem -> Integer -> Integer
+                      countNums' (DbNumber _) acc = acc + 1
+                      countNums' _            acc = acc
