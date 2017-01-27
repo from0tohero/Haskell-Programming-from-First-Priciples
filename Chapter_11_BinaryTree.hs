@@ -37,3 +37,8 @@ inorder (Node l x r) = inorder l ++ [x] ++ inorder r
 postorder :: BinaryTree a -> [a]
 postorder Leaf         = []
 postorder (Node l x r) = postorder l ++ postorder r ++ [x]
+
+-- Inorder
+foldTree :: (a -> b -> b) -> b -> BinaryTree a -> b
+foldTree _ b Leaf = b
+foldTree f b (Node l x r) = foldTree f (f x (foldTree f b l)) r
