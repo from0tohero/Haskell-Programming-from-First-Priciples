@@ -57,7 +57,7 @@ instance Semigroup BoolDisj where
   BoolDisj False <> BoolDisj False = BoolDisj False
   _ <> _ = BoolDisj True
 ```
-8. 'Or a b'
+8. `Or a b`
 ```haskell
 data Or a b = Fst a | Snd b deriving (Show)
 
@@ -71,4 +71,11 @@ newtype Combine a b = Combine { unCombine :: (a -> b) }
 
 instance Semigroup b => Semigroup (Combine a b) where
   Combine f <> Combine g = Combine $ \x -> (f x) <> (g x)
+```
+10. `Combine a a`
+```haskell
+newtype Combine a b = Combine { unCombine :: (a -> a) }
+
+instance Semigroup (Combine a b) where
+  Combine f <> Combine g = Combine $ f.g
 ```
