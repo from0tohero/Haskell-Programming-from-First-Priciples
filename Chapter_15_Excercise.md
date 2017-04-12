@@ -101,7 +101,7 @@ instance Semigroup b => Semigroup (AccumulateRight a b) where
   AccumulateRight (Success s) <> AccumulateRight (Failure f)  = AccumulateRight $ Success s
   AccumulateRight (Failure f) <> AccumulateRight (Failure f') = AccumulateRight $ Failure f 
 ```
-13. `AccumulateBoth (Validation a b)'
+13. `AccumulateBoth (Validation a b)`
 ```haskell
 newtype AccumulateBoth a b = AccumulateBoth (Validation a b)
   deriving (Eq, Show)
