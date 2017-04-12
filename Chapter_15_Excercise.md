@@ -79,3 +79,37 @@ newtype Combine a b = Combine { unCombine :: (a -> a) }
 instance Semigroup (Combine a b) where
   Combine f <> Combine g = Combine $ f.g
 ```
+11. `Validation a b` 
+```haskell
+data Validation a b = Failure a | Success b
+  deriving (Eq, Show)
+
+instance Semigroup a => Semigroup (Validation a b) where
+  Failure f <> Failure f' = Failure $ f <> f'
+  Success s <> Success s' = Success s
+  Failure f <> Success s  = Failure f
+  Success s <> Failure f  = Failure f
+```
+12. `AccumulateRight (Validation a b)`
+```haskell
+newtype AccumulateRight a b = AccumulateRight (Validation a b)
+  deriving (Eq, Show)
+
+instance Semigroup b => Semigroup (AccumulateRight a b) where
+  AccumulateRight (Success s) <> AccumulateRight (Success s') = AccumulateRight $ Success $ s <> s'
+  AccumulateRight (Failure f) <> AccumulateRight (Success s)  = AccumulateRight $ Success s
+  AccumulateRight (Success s) <> AccumulateRight (Failure f)  = AccumulateRight $ Success s
+  AccumulateRight (Failure f) <> AccumulateRight (Failure f') = AccumulateRight $ Failure f 
+```
+13. `AccumulateBoth (Validation a b)'
+```haskell
+newtype AccumulateBoth a b = AccumulateBoth (Validation a b)
+  deriving (Eq, Show)
+
+instance (Semigroup a, Semigroup b) =>
+Semigroup (AccumulateBoth a b) where
+  AccumulateBoth (Success s) <> AccumulateBoth (Success s') = AccumulateBoth $ Success $ s <> s'
+  AccumulateBoth (Failure f) <> AccumulateBoth (Success s)  = AccumulateBoth $ Failure f
+  AccumulateBoth (Success s) <> AccumulateBoth (Failure f)  = AccumulateBoth $ Failure f
+  AccumulateBoth (Failure f) <> AccumulateBoth (Failure f') = AccumulateBoth $ Failure $ f <> f'
+```
