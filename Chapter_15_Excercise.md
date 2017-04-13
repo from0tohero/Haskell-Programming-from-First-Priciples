@@ -12,8 +12,8 @@ instance Semigroup Trivial where
 newtype Identity a = Identity a
   deriving (Show)
   
-instance Semigroup (Identity a) where
-  Identity x <> _ = Identity x
+instance Semigroup a => Semigroup (Identity a) where
+  Identity x <> Identity y = Identity $ x <> y
 ```
 3. `Two a b`
 ```haskell
@@ -45,7 +45,7 @@ newtype BoolConj = BoolConj Bool
   deriving (Show)
 
 instance Semigroup BoolConj where
-  BoolConj True <> True = BoolConj True
+  BoolConj True <> BoolConj True = BoolConj True
   _ <> _ = BoolConj False
 ```
 7. `BoolDisj`
@@ -112,4 +112,98 @@ Semigroup (AccumulateBoth a b) where
   AccumulateBoth (Failure f) <> AccumulateBoth (Success s)  = AccumulateBoth $ Failure f
   AccumulateBoth (Success s) <> AccumulateBoth (Failure f)  = AccumulateBoth $ Failure f
   AccumulateBoth (Failure f) <> AccumulateBoth (Failure f') = AccumulateBoth $ Failure $ f <> f'
+```
+## Monoid exercises
+1. `Trivial`
+```haskell
+data Trivial = Trivial deriving (Eq, Show)
+
+instance Semigroup Trivial where
+  _ <> _ = Trivial
+
+instance Monoid Trivial where
+  mempty = Trivial
+  mappend = (<>)
+```
+2. `Identity a`
+```haskell
+newtype Identity a = Identity a deriving Show
+
+instance Semigroup a => Semigroup (Identity a) where
+  Identity x <> Identity y = Identity $ x <> y
+  
+instance (Semigroup a, Monoid a) => Monoid (Identity a) where
+  mempty = Identity mempty
+  mappend = (<>)
+```
+3. `data Two a b`
+```haskell
+data Two a b = Two a b deriving Show
+
+instance (Semigroup a, Semigroup b) => Semigroup (Two a b) where
+  Two x y <> Two x' y' = Two (x <> x') (y <> y')
+
+instance (Semigroup a, Monoid a, Semigroup b, Monoid b) => Monoid (Two a b) where
+  mempty = Two mempty mempty
+  mappend = (<>)
+```
+4. `newtype BoolConj = BoolConj Bool`
+```haskell
+newtype BoolConj = BoolConj Bool
+
+instance Semigroup BoolConj where
+  BoolConj True <> BoolConj True = BoolConj True
+  _ <> _ = BoolConj False
+
+instance Monoid BoolConj where
+  mempty = BoolConj False
+  mappend = (<>)
+```
+5. `BoolDisj`
+```haskell
+newtype BoolDisj = BoolDisj Bool
+
+instance Semigroup BoolDisj where
+  BoolDisj True `mappend` BoolDisj True = BoolDisj True
+  _ <> _ = BoolDisj False
+
+instance Monoid BoolDisj where
+  mempty = BoolDisj True
+  mappend = (<>)
+```
+6. `Combine a b`
+```haskell
+newtype Combine a b = Combine { unCombine :: (a -> b) }
+
+instance Semigroup b => Semigroup (Combine a b) where
+  Combine f <> Combine g = Combine $ \x -> f x <> g x
+
+instance (Semigroup b, Monoid b) => Monoid (Combine a b) where
+  mempty = Combine $ \x -> mempty
+  mappend = (<>)
+```
+7. `Combine a`
+```haskell
+newtype Combine a = Combine { unCombine :: (a -> a) }
+
+instance Semigroup a => Semigroup (Combine a) where
+  Combine f <> Combine g = Combine $ f . g
+
+instance (Semigroup a, Monoid a) => Monoid (Combine a) where
+  mempty = Combine mempty
+  mappend = (<>)
+```
+8. `Mem s a = Mem { runMem :: s -> (a, s) }`  
+This is tricky, `Mem` takes a function which takes an `s` as a input and returns a pair `(a, s)`, and `a` is a `Monoid` instance.  
+As a instance of `Monoid`, the `mempty` of `Mem` should be a function which uses `mempty` of type `a`. The `mappend` should take two `Mem` and somehow combines their `a` part.
+```haskell
+newtype Mem s a = Mem { runMem :: s -> (a,s) }
+
+instance Semigroup a => Semigroup (Mem s a) where
+  Mem f <> Mem g = Mem h
+    where h = \x -> (fst (f x) <> fst (g x), x)
+
+instance (Semigroup a, Monoid a) => Monoid (Mem s a) where
+  mempty = Mem $ \x -> (mempty, x)
+  mappend = (<>)
 ```
