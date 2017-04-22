@@ -35,5 +35,43 @@ minimum' xs = getMin $ foldMap (\x -> Min {getMin = Just x}) xs
 ```
 5.
 ```haskell
+newtype Maximum a = Maximum { getMax :: Maybe a } deriving Show
 
+instance Ord a => Monoid (Maximum a) where
+  mempty = Maximum Nothing
+  mappend m@(Maximum (Just x)) n@(Maximum (Just y))
+    | x > y = m
+    | otherwise = n
+  mappend mempty m@(Maximum (Just _)) = m
+  mappend m@(Maximum (Just _)) mempty = m
+
+maximum' :: (Foldable t, Ord a) => t a -> Maybe a
+maximum' = getMax . foldMap (\x -> Maximum (Just x)) 
+```
+6.  
+Using `foldMap`
+```haskell
+import Data.Monoid
+
+null' :: (Foldable t) => t a -> Bool
+null' = getAll . foldMap (\x -> All False)
+```
+Using `foldr`
+```haskell
+null'' :: (Foldable t) => t a -> Bool
+null'' = foldr (\x _ -> False) True
+```
+
+7.  
+Using `foldr`
+```haskell
+length' :: (Foldable t) => t a -> Int
+length' = foldr (\_ acc -> acc + 1) 0
+```
+Using `foldMap`
+```haskell
+import Data.Monoid
+
+length' :: (Foldable t) => t a -> Int
+length'' = getSum . foldMap (\_ -> Sum 1)
 ```
