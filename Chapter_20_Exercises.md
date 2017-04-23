@@ -75,3 +75,25 @@ import Data.Monoid
 length' :: (Foldable t) => t a -> Int
 length'' = getSum . foldMap (\_ -> Sum 1)
 ```
+8.  
+`foldr`
+```haskell
+toList :: Foldable t => t a -> [a]
+toList = foldr (\x acc -> x : acc) []
+```
+`foldMap`
+```haskell
+toList' :: Foldable t => t a -> [a]
+toList' = foldMap (\x -> [x])
+```
+9.
+```haskell
+-- | Combine the elements of a structure using a monoid.
+fold :: (Foldable t, Monoid m) => t m -> m
+fold = foldMap id
+```
+10. Define `foldMap` in terms of `foldr`.
+```haskell
+foldMap' :: (Foldable t, Monoid m) => (a -> m) -> t a -> m
+foldMap' f = foldr (\x acc -> f x `mappend` acc) mempty
+```
