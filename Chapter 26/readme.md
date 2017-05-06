@@ -1,6 +1,6 @@
-## Some Monad Transformers Mentioned in The Book
+# Some Monad Transformers Mentioned in The Book
 
-#### 1. `IdentityT`
+### 1. `IdentityT`
 This transformer is mainly used for educational purpose (*in my opnion*). Basically, it wraps a monadic 
 structure inside the `Identity` type:
 ```haskell
@@ -14,7 +14,8 @@ For `bind`, let's do it step-by-step:
 (>>=)              (IdentityT ma)   f
 ```
 Therefore, we have `IdentityT ma` has type `IdentityT m a`, function `f` has type `a -> IdentityT m b`, 
-and we know the return type is `IdentityT m b`  
+and we know the return type is `IdentityT m b`
+
 2. To apply the function `f` to `ma`, we have to use `fmap`:
 ```haskell
 f  :: a -> IdentityT m b
@@ -37,11 +38,34 @@ So the final answer is:
  >>= :: Monad m => IdentityT m a -> (a -> IdentityT m b) -> IdentityT m b
 (>>=)              (IdentityT ma)   f                    =  IdentityT $ join fmap runIdentityT (fmap f ma)
 ```
-6. Last last step. Simplify the answer we have in step 5. 1) We know `fmap f (fmap g x) == fmap (f . g) x`, so 
+6. Last last step. Simplify the answer we have in step 5.
+  * We know `fmap f (fmap g x) == fmap (f . g) x`, so 
 ```haskell
 IdentityT $ join fmap runIdentityT (fmap f ma) == IdentityT $ join fmap (runIdentityT . f) ma
 ```
-and 2) `join fmap == >>=`
+  * `join fmap == >>=`
 ```haskell
 IdentityT $ join fmap (runIdentityT . f) ma == IdentityT $ ma >>= runIdentityT . f
 ```
+
+### 2. `MaybeT`
+Definition:
+```haskell
+newtype MaybeT m a = MaybeT {runMaybeT :: m (Maybe a) }
+```
+Functor def is similar to `Compose`, things become complicated when implementing the `(<*>)` for `Applicative` instance
+```haskell
+(<*>) :: MaybeT m (a -> b) -> MaybeT m a -> MaybeT m b
+(<*>)    (MaybeT mf)          (MaybeT ma) = undefined
+```
+`mf` here has type `m (Maybe (a -> b))` and `ma` has type `m (Maybe a)`. We want to do some magic to `mf` to convert it 
+to type `m (Maybe a -> Maybe b)` so that we can use `<*>` of `Applicative m` to apply to `ma :: m (Maybe a)`.  
+Recall the defination of `<*> :: f (a -> b) -> f a -> f b`, it takes two arguments, if we pass it just one argument, then 
+it becomes `(<*>) fab :: f a -> f b`. Therefore we can use this property.  
+`fmap (<*>) mf` has type `m (Maybe a -> Maybe b)`, therefore we can apply this to `ma`.
+Final result:
+```haskell
+(<*>) (MaybeT mf) (MaybeT ma) = MaybeT $ (<*>) <$> mf <*> ma
+```
+For `Monad` instance, we would like to take the inner part out, since `m` is also a `Monad`, we can use `<-` from `Monad` 
+to get the `Maybe a` part.
