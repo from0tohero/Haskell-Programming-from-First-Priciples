@@ -6,6 +6,19 @@ instance Functor m => Functor (StateT s m) where
             mb = fmap (f . fst) mas -- type: m (b, s)
         in fmap (\b -> (b, s)) mb   -- type: m (b, s)
 
+-- Applicative instance uses the Monad m
+-- http://stackoverflow.com/questions/18673525/is-it-possible-to-implement-applicative-m-applicative-statet-s-m
+instance Monad m => Applicative (StateT s m) where
+    pure a = StateT $ \s -> pure (a, s)
+    -- smfs has type s -> m ((a -> b), s)
+    StateT smfs <*> StateT smas = StateT $ \s -> 
+        (f, s') <- smfs s
+        (a, s'') <- smas s'
+        return (f a, s'')
+
+-- This implementation is WRONG!!
+-- In this implementaion, mfs and mas use the state s, which is NOT correct.
+{--
 instance Applicative m => Applicative (StateT s m) where
     pure a = StateT $ \s -> pure (a, s)
     -- smfs has type s -> m ((a -> b), s)
@@ -16,6 +29,7 @@ instance Applicative m => Applicative (StateT s m) where
             ma  = fmap fst mas -- type: m a
             ms  = fmap snd mas -- type: m s
         in (,) <$> (mf <*> ma) <*> ms  -- type: (,) -> m a -> m s -> m (a, s)
+--}
 
 instance Monad m => Monad (StateT s m) where
     return = pure
