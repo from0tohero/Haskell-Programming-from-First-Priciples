@@ -7,10 +7,8 @@ newtype Moi s a = Moi { runMoi :: s -> (a, s) }
 ```haskell
 instance Functor (Moi s) where
   fmap f (Moi g) = Moi $ \s  
-    -> let gs = g s 
-           s' = snd gs
-           a = f $ fst gs
-       in (a, s')
+    -> let (a, s') = g s 
+       in (f a, s')
 ```
 A clearer implementation
 ```haskell
