@@ -10,12 +10,7 @@ instance Functor (Moi s) where
     -> let (a, s') = g s 
        in (f a, s')
 ```
-A clearer implementation
-```haskell
-instance Functor (Moi s) where
-  fmap f (Moi g) = Moi $ \s -> let (a, s') = g s 
-                               in (f a, s') 
-```
+
 ### State Applicative
 ```haskell
 instance Applicative (Moi s) where
